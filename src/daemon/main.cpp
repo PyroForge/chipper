@@ -45,7 +45,10 @@
 #include "rpc/rpc_args.h"
 #include "daemon/command_line_args.h"
 #include "version.h"
-
+#include "cryptonote_core/cryptonote_basic_impl.h" // for construct_miner_tx, get_account_address_as_str
+#include "cryptonote_core/cryptonote_format_utils.h" // for tx_to_blob
+#include "cryptonote_core/account.h" // for account_base
+#include "epee/string_tools.h" // for pod_to_hex, buff_to_hex_nodelimer
 #ifdef STACK_TRACE
 #include "common/stack_trace.h"
 #endif // STACK_TRACE
