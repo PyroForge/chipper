@@ -132,31 +132,33 @@ int main(int argc, char const * argv[])
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if (vm.count("print-genesis-tx")) {
-        cryptonote::network_type nettype = cryptonote::MAINNET;
-        cryptonote::transaction tx;
-        crypto::secret_key tx_key;
-        std::vector<crypto::public_key> additional_tx_keys;
+if (vm.count("print-genesis-tx")) {
+    cryptonote::network_type nettype = cryptonote::MAINNET;
+    cryptonote::transaction tx;
 
-        cryptonote::account_base acc;
-        acc.generate();
+    cryptonote::account_base acc;
+    acc.generate();
 
-        std::cout << "Generated wallet address: " << cryptonote::get_account_address_as_str(nettype, false, acc.get_keys().m_account_address) << std::endl;
-        std::cout << "Private spend key: " << epee::string_tools::pod_to_hex(acc.get_keys().m_spend_secret_key) << std::endl;
-        std::cout << "Private view key: " << epee::string_tools::pod_to_hex(acc.get_keys().m_view_secret_key) << std::endl;
+    std::cout << "Generated wallet address: " << cryptonote::get_account_address_as_str(nettype, false, acc.get_keys().m_account_address) << std::endl;
 
-        bool r = cryptonote::construct_miner_tx(0, 0, 0, 0, 0, acc.get_keys().m_account_address, tx, tx_key, additional_tx_keys);
-        if (!r) {
-            std::cerr << "Failed to construct genesis tx" << std::endl;
-            return 1;
-        }
+    // Unwrap spend key
+    const auto& spend_key = acc.get_keys().m_spend_secret_key;
+    std::cout << "Private spend key: " << epee::string_tools::pod_to_hex(*reinterpret_cast<const crypto::secret_key*>(&spend_key)) << std::endl;
 
-        std::string genesis_tx_hex;
-        cryptonote::blobdata tx_blob = cryptonote::tx_to_blob(tx);
-        epee::string_tools::buff_to_hex_nodelimer(tx_blob, genesis_tx_hex);
-        std::cout << "GENESIS TX: " << genesis_tx_hex << std::endl;
-        return 0;
+    // Unwrap view key
+    const auto& view_key = acc.get_keys().m_view_secret_key;
+    std::cout << "Private view key: " << epee::string_tools::pod_to_hex(*reinterpret_cast<const crypto::secret_key*>(&view_key)) << std::endl;
+
+    bool r = cryptonote::construct_miner_tx(0, 0, 0, 0, 0, acc.get_keys().m_account_address, tx);
+    if (!r) {
+        std::cerr << "Failed to construct genesis tx" << std::endl;
+        return 1;
     }
+
+    std::string genesis_tx_hex = epee::string_tools::buff_to_hex_nodelimer(cryptonote::tx_to_blob(tx));
+    std::cout << "GENESIS TX: " << genesis_tx_hex << std::endl;
+    return 0;
+}
 
   try {
 
