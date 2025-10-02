@@ -45,10 +45,6 @@
 #include "rpc/rpc_args.h"
 #include "daemon/command_line_args.h"
 #include "version.h"
-#include "cryptonote_core/cryptonote_basic_impl.h" // for construct_miner_tx, get_account_address_as_str
-#include "cryptonote_core/cryptonote_format_utils.h" // for tx_to_blob
-#include "cryptonote_core/account.h" // for account_base
-#include "epee/string_tools.h" // for pod_to_hex, buff_to_hex_nodelimer
 #ifdef STACK_TRACE
 #include "common/stack_trace.h"
 #endif // STACK_TRACE
@@ -127,42 +123,6 @@ bool isFat32(const wchar_t* root_path)
 
 int main(int argc, char const * argv[])
 {
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("print-genesis-tx", "Print the genesis transaction");
-
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-if (vm.count("print-genesis-tx")) {
-    cryptonote::network_type nettype = cryptonote::MAINNET;
-    cryptonote::transaction tx;
-
-    cryptonote::account_base acc;
-    acc.generate();
-
-    std::cout << "Generated wallet address: " << cryptonote::get_account_address_as_str(nettype, false, acc.get_keys().m_account_address) << std::endl;
-
-    // Unwrap spend key
-    const auto& spend_key = acc.get_keys().m_spend_secret_key;
-    std::cout << "Private spend key: " << epee::string_tools::pod_to_hex(*reinterpret_cast<const crypto::secret_key*>(&spend_key)) << std::endl;
-
-    // Unwrap view key
-    const auto& view_key = acc.get_keys().m_view_secret_key;
-    std::cout << "Private view key: " << epee::string_tools::pod_to_hex(*reinterpret_cast<const crypto::secret_key*>(&view_key)) << std::endl;
-
-    bool r = cryptonote::construct_miner_tx(0, 0, 0, 0, 0, acc.get_keys().m_account_address, tx);
-    if (!r) {
-        std::cerr << "Failed to construct genesis tx" << std::endl;
-        return 1;
-    }
-
-    std::string genesis_tx_hex = epee::string_tools::buff_to_hex_nodelimer(cryptonote::tx_to_blob(tx));
-    std::cout << "GENESIS TX: " << genesis_tx_hex << std::endl;
-    return 0;
-}
-
   try {
 
     // TODO parse the debug options like set log level right here at start
