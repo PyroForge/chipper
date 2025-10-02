@@ -124,6 +124,30 @@ bool isFat32(const wchar_t* root_path)
 
 int main(int argc, char const * argv[])
 {
+  if (command_line::get_arg(vm, {"--print-genesis-tx"}))
+{
+  cryptonote::network_type nettype = cryptonote::MAINNET;
+  cryptonote::cryptonote_construct_tx_and_get_tx_key_result result;
+  cryptonote::transaction tx;
+  cryptonote::network_config net_config = cryptonote::get_config(nettype);
+
+  crypto::public_key public_key;
+  crypto::secret_key secret_key;
+  cryptonote::account_base acc;
+  acc.generate();
+
+  std::cout << "Generated wallet address: " << get_account_address_as_str(nettype, false, acc.get_keys().m_account_address) << std::endl;
+  std::cout << "Private spend key: " << epee::string_tools::pod_to_hex(acc.get_keys().m_spend_secret_key) << std::endl;
+  std::cout << "Private view key:  " << epee::string_tools::pod_to_hex(acc.get_keys().m_view_secret_key) << std::endl;
+
+  cryptonote::construct_miner_tx(0, 0, 0, 0, 0, acc.get_keys().m_account_address, tx, result.tx_key, result.additional_tx_keys);
+  std::string genesis_tx_hex;
+  cryptonote::blobdata tx_blob = cryptonote::tx_to_blob(tx);
+  string_tools::buff_to_hex_nodelimer(tx_blob, genesis_tx_hex);
+  std::cout << "GENESIS TX: " << genesis_tx_hex << std::endl;
+  return 0;
+}
+
   try {
 
     // TODO parse the debug options like set log level right here at start
