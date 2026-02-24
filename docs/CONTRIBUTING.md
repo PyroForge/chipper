@@ -1,1 +1,1 @@
-# Contributing in closed
+# Contributing is closed
